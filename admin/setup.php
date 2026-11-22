@@ -18,7 +18,8 @@
 /**
  * \file    admin/setup.php
  * \ingroup irest
- * \brief   Setup of the module iRest for Dolibarr: address of i-REST, key of its API, time-out, test.
+ * \brief   Setup of the module iRest for Dolibarr: mode, then address of i-REST, key of its API, time-out and test
+ *          (mode "read"), or state of the data written by i-REST (mode "push").
  */
 
 // Load Dolibarr environment
@@ -56,6 +57,7 @@ if (!$res) {
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/irest/lib/irest.lib.php');
 dol_include_once('/irest/class/imrstclient.class.php');
+dol_include_once('/irest/class/imrstdocument.class.php');
 
 /**
  * @var Conf $conf
@@ -77,6 +79,14 @@ $action = GETPOST('action', 'aZ09');
  * Actions
  */
 
+if ($action == 'mode') {
+	if (ImRstClient::saveMode($db, GETPOST('IM_RST_MODE', 'aZ09')) > 0) {
+		setEventMessages($langs->trans('SetupSaved'), null, 'mesgs');
+	}
+	header('Location: '.$_SERVER['PHP_SELF']);
+	exit;
+}
+
 if ($action == 'save' || $action == 'test') {
 	if ($action == 'save') {
 		$result = ImRstClient::saveSetup($db, GETPOST('IM_RST_API_URL', 'alphanohtml'), GETPOST('IM_RST_API_KEY', 'none'), GETPOSTINT('IM_RST_TIMEOUT'));
@@ -91,7 +101,7 @@ if ($action == 'save' || $action == 'test') {
 	$client = new ImRstClient();
 	$status = $client->status();
 	if ($status !== null) {
-		setEventMessages($langs->trans('IM_RST_StatusOk', (string) ($status['connection']['label'] ?? '?')), null, 'mesgs');
+		setEventMessages($langs->trans($client->mode() === ImRstClient::MODE_PUSH ? 'IM_RST_PushOk' : 'IM_RST_StatusOk', (string) ($status['connection']['label'] ?? '?')), null, 'mesgs');
 	} else {
 		setEventMessages($client->errorMessage($langs), null, 'errors');
 	}
@@ -114,6 +124,41 @@ print load_fiche_titre($langs->trans('IM_RST_SetupTitle'), $linkback, 'title_set
 print dol_get_fiche_head(im_rst_admin_prepare_head(), 'settings', '', -1, 'fa-hourglass-half');
 
 print '<span class="opacitymedium">'.$langs->trans('IM_RST_SetupHelp').'</span><br><br>';
+
+// Mode: read the API of i-REST, or read the data i-REST writes here
+print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="action" value="mode">';
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre"><td colspan="2">'.$langs->trans('IM_RST_Mode').'</td></tr>';
+foreach (array(ImRstClient::MODE_READ => 'IM_RST_ModeRead', ImRstClient::MODE_PUSH => 'IM_RST_ModePush') as $mode => $labelKey) {
+	print '<tr class="oddeven"><td class="width25"><input type="radio" id="im_rst_mode_'.$mode.'" name="IM_RST_MODE" value="'.$mode.'"'.($client->mode() === $mode ? ' checked' : '').'></td>';
+	print '<td><label for="im_rst_mode_'.$mode.'">'.$langs->trans($labelKey).'</label><br><span class="opacitymedium">'.$langs->trans($labelKey.'Help').'</span></td></tr>';
+}
+print '</table>';
+print '<div class="center"><input type="submit" class="button button-save" value="'.dol_escape_htmltag($langs->trans('Save')).'"></div>';
+print '</form><br>';
+
+if ($client->mode() === ImRstClient::MODE_PUSH) {
+	$lastWrite = ImRstDocument::lastWrite($db);
+	print '<table class="noborder centpercent">';
+	print '<tr class="liste_titre"><td>'.$langs->trans('Parameter').'</td><td>'.$langs->trans('Value').'</td></tr>';
+	print '<tr class="oddeven"><td>'.$langs->trans('IM_RST_LastWrite').'</td>';
+	print '<td>'.($lastWrite !== null ? dol_print_date($lastWrite, 'dayhour', 'tzuserrel') : '<span class="opacitymedium">'.$langs->trans('IM_RST_NothingWritten').'</span>').'</td></tr>';
+	print '<tr class="oddeven"><td>'.$langs->trans('IM_RST_ApiUser').'</td>';
+	print '<td><span class="opacitymedium">'.$langs->trans('IM_RST_ApiUserHelp').'</span></td></tr>';
+	print '</table>';
+	print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'" class="center">';
+	print '<input type="hidden" name="token" value="'.newToken().'">';
+	print '<input type="hidden" name="action" value="test">';
+	print '<input type="submit" class="button" value="'.dol_escape_htmltag($langs->trans('IM_RST_TestPush')).'">';
+	print '</form>';
+
+	print dol_get_fiche_end();
+	llxFooter();
+	$db->close();
+	exit;
+}
 
 print '<form method="POST" action="'.$_SERVER['PHP_SELF'].'">';
 print '<input type="hidden" name="token" value="'.newToken().'">';

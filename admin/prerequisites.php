@@ -123,6 +123,9 @@ print dol_get_fiche_head(im_rst_admin_prepare_head(), 'prerequisites', '', -1, '
 
 print '<span class="opacitymedium">'.$langs->trans('IM_RST_PreparationHelp').'</span><br><br>';
 
+if ($states !== null && $prerequisites->reportFailed) {
+	print info_admin($langs->trans('IM_RST_ReportNotSent', $client->errorMessage($langs)), 0, 0, 'warning');
+}
 if ($states === null) {
 	print info_admin($client->errorMessage($langs), 0, 0, 'warning');
 } elseif (empty($states)) {

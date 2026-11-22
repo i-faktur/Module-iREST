@@ -25,8 +25,9 @@ include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 
 /**
  * Descriptor of the module iRest for Dolibarr (number 407006, prefix IM_RST): tab "Banks of hours" of the third
- * parties and contracts, filled from the API of i-REST, and preparation of Dolibarr for the workflows of i-REST.
- * The module computes nothing: what it shows and what it creates comes from i-REST.
+ * parties and contracts, filled from the API of i-REST (mode "read") or from the documents i-REST writes through the
+ * API of the module (mode "push"), and preparation of Dolibarr for the workflows of i-REST. The module computes
+ * nothing: what it shows and what it creates comes from i-REST.
  */
 class modIrest extends DolibarrModules
 {
@@ -48,7 +49,7 @@ class modIrest extends DolibarrModules
 		$this->descriptionlong = 'IM_RST_ModuleDescription';
 		$this->editor_name = 'I-Motion SARL';
 		$this->editor_url = 'https://www.i-motion.fr';
-		$this->version = '1.0.0';
+		$this->version = '1.1.0';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		$this->picto = 'fa-hourglass-half';
 
@@ -106,6 +107,12 @@ class modIrest extends DolibarrModules
 		$this->rights[$r][4] = 'hoursbank';
 		$this->rights[$r][5] = 'readall';
 		$r++;
+		// Mode "push": given to the API user of i-REST only, which writes the documents (class/api_irest.class.php)
+		$this->rights[$r][0] = $this->numero.sprintf('%02d', 3);
+		$this->rights[$r][1] = 'IM_RST_RightWriteDocuments';
+		$this->rights[$r][4] = 'document';
+		$this->rights[$r][5] = 'write';
+		$r++;
 
 		// Entry "Banks of hours" of the menu of the third parties: banks of hours of all the customers
 		$this->menu = array();
@@ -128,14 +135,19 @@ class modIrest extends DolibarrModules
 	}
 
 	/**
-	 * Enables the module: rights and constants (no table, no extra field of its own; the extra fields the workflows
-	 * of i-REST need are created from the preparation page).
+	 * Enables the module: table of the documents of the mode "push" (sql/), rights and constants (no extra field of
+	 * its own; the extra fields the workflows of i-REST need are created from the preparation page).
 	 *
 	 * @param  string $options Options when enabling module ('', 'noboxes')
 	 * @return int             1 if OK, <= 0 if KO
 	 */
 	public function init($options = '')
 	{
+		$result = $this->_load_tables('/irest/sql/');
+		if ($result < 0) {
+			return -1;
+		}
+
 		$this->remove($options);
 
 		return $this->_init(array(), $options);

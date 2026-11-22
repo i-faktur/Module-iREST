@@ -49,6 +49,11 @@ class ImRstPrerequisites
 	private $client;
 
 	/**
+	 * @var bool Whether the last check could not send its report to i-REST (reason in the $error of the client)
+	 */
+	public $reportFailed = false;
+
+	/**
 	 * @param DoliDB      $db     Database handler
 	 * @param ImRstClient $client Client of the API of i-REST
 	 */
@@ -80,7 +85,7 @@ class ImRstPrerequisites
 			$states[] = array('prerequisite' => $prerequisite) + $state;
 			$report[(string) $prerequisite['code']] = array('status' => $state['status'], 'detail' => $state['detail']);
 		}
-		$this->client->report($report);
+		$this->reportFailed = !$this->client->report($report);
 
 		return $states;
 	}
