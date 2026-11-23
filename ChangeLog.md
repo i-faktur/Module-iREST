@@ -2,7 +2,9 @@
 
 All notable changes of iRest for Dolibarr. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2026-11-23
+
+First published version.
 
 ### Added
 - Tab "Banks of hours" of the third parties and contracts, read from the API of i-REST (version 1).
