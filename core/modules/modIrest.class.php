@@ -49,7 +49,7 @@ class modIrest extends DolibarrModules
 		$this->descriptionlong = 'IM_RST_ModuleDescription';
 		$this->editor_name = 'I-Motion SARL';
 		$this->editor_url = 'https://www.i-motion.fr';
-		$this->version = '1.1.0';
+		$this->version = '1.2.0';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 		$this->picto = 'fa-hourglass-half';
 
@@ -73,7 +73,7 @@ class modIrest extends DolibarrModules
 		$this->config_page_url = array('setup.php@irest');
 
 		$this->hidden = false;
-		$this->depends = array('modSociete', 'modContrat');
+		$this->depends = array('modSociete', 'modContrat', 'modApi');
 		$this->requiredby = array();
 		$this->conflictwith = array();
 
@@ -135,8 +135,9 @@ class modIrest extends DolibarrModules
 	}
 
 	/**
-	 * Enables the module: table of the documents of the mode "push" (sql/), rights and constants (no extra field of
-	 * its own; the extra fields the workflows of i-REST need are created from the preparation page).
+	 * Enables the module: table of the documents of the mode "push" (sql/), rights and constants, then the base of
+	 * the installation of i-REST (class/imrstinstaller.class.php). A failure of that base never blocks the activation:
+	 * the tab "Installation" shows what is missing.
 	 *
 	 * @param  string $options Options when enabling module ('', 'noboxes')
 	 * @return int             1 if OK, <= 0 if KO
@@ -148,19 +149,62 @@ class modIrest extends DolibarrModules
 			return -1;
 		}
 
-		$this->remove($options);
+		// Not $this->remove(): enabling the module must not disable the API user
+		$this->_remove(array(), $options);
 
-		return $this->_init(array(), $options);
+		$result = $this->_init(array(), $options);
+		if ($result > 0) {
+			$this->installBase();
+		}
+
+		return $result;
 	}
 
 	/**
-	 * Disables the module (the configuration is kept).
+	 * Disables the module (the configuration is kept) and its API user; nothing is deleted. The reload of the modules
+	 * by a migration of Dolibarr (option "noboxes") leaves the API user as it is.
 	 *
 	 * @param  string $options Options when disabling module ('', 'noboxes')
 	 * @return int             1 if OK, <= 0 if KO
 	 */
 	public function remove($options = '')
 	{
+		if ($options !== 'noboxes') {
+			try {
+				dol_include_once('/irest/class/imrstinstaller.class.php');
+				(new ImRstInstaller($this->db))->disableUser();
+			} catch (\Throwable $exception) {
+				dol_syslog('modIrest::remove '.$exception->getMessage(), LOG_ERR);
+			}
+		}
+
 		return $this->_remove(array(), $options);
+	}
+
+	/**
+	 * Creates or completes the base of the installation, on a Dolibarr not yet configured for i-REST. The modules the
+	 * module depends on are enabled first, since their rights must exist to be given.
+	 *
+	 * @return void
+	 */
+	private function installBase()
+	{
+		try {
+			require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+			dol_include_once('/irest/class/imrstinstaller.class.php');
+			$installer = new ImRstInstaller($this->db);
+			$installer->enableUser();
+			if (!$installer->mayInstallAutomatically()) {
+				return;
+			}
+			foreach ($this->depends as $module) {
+				activateModule($module);
+			}
+			if (!$installer->install((bool) getDolGlobalInt(ImRstInstaller::CONST_READ_ONLY))) {
+				dol_syslog('modIrest::installBase '.implode(', ', $installer->errors), LOG_WARNING);
+			}
+		} catch (\Throwable $exception) {
+			dol_syslog('modIrest::installBase '.$exception->getMessage(), LOG_ERR);
+		}
 	}
 }

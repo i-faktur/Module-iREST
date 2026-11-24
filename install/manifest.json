@@ -1,0 +1,70 @@
+{
+    "schema": 1,
+    "application": "dolibarr",
+    "names": {
+        "group": "i-REST API",
+        "user": "irest"
+    },
+    "rights": [
+        {
+            "key": "categorie.lire",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "contrat.lire",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "facture.creer",
+            "bits": 0,
+            "write": true
+        },
+        {
+            "key": "facture.lire",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "irest.document.write",
+            "bits": 0,
+            "write": true
+        },
+        {
+            "key": "produit.lire",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "societe.client.voir",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "societe.contact.creer",
+            "bits": 0,
+            "write": true
+        },
+        {
+            "key": "societe.contact.lire",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "societe.creer",
+            "bits": 0,
+            "write": true
+        },
+        {
+            "key": "societe.lire",
+            "bits": 0,
+            "write": false
+        },
+        {
+            "key": "user.user.lire",
+            "bits": 0,
+            "write": false
+        }
+    ]
+}

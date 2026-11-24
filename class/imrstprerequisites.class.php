@@ -127,6 +127,36 @@ class ImRstPrerequisites
 	}
 
 	/**
+	 * Creates every missing prerequisite with the default choices of i-REST, then reports the new state to i-REST.
+	 *
+	 * @param  User      $user  User making the change
+	 * @param  Translate $langs Translations
+	 * @return array{created:array<int,string>,errors:array<int,string>}|null Labels created and errors; null on failure of i-REST
+	 */
+	public function createMissing($user, $langs)
+	{
+		$states = $this->check($langs);
+		if ($states === null) {
+			return null;
+		}
+		$codes = array();
+		foreach ($states as $state) {
+			if ($state['status'] === 'missing') {
+				$codes[] = (string) $state['prerequisite']['code'];
+			}
+		}
+		if (empty($codes)) {
+			return array('created' => array(), 'errors' => array());
+		}
+		$result = $this->create($user, $langs, $codes, array());
+		if ($result !== null) {
+			$this->check($langs);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * State of a prerequisite in this Dolibarr, null for a kind this module does not handle.
 	 *
 	 * @param  array<string,mixed> $prerequisite Prerequisite declared by i-REST

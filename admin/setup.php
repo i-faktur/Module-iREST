@@ -58,6 +58,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 dol_include_once('/irest/lib/irest.lib.php');
 dol_include_once('/irest/class/imrstclient.class.php');
 dol_include_once('/irest/class/imrstdocument.class.php');
+dol_include_once('/irest/class/imrstprerequisites.class.php');
 
 /**
  * @var Conf $conf
@@ -102,6 +103,20 @@ if ($action == 'save' || $action == 'test') {
 	$status = $client->status();
 	if ($status !== null) {
 		setEventMessages($langs->trans($client->mode() === ImRstClient::MODE_PUSH ? 'IM_RST_PushOk' : 'IM_RST_StatusOk', (string) ($status['connection']['label'] ?? '?')), null, 'mesgs');
+		// The configuration works: what the workflows need is created without a click (nothing that exists is changed)
+		if ($action == 'save' || $client->mode() === ImRstClient::MODE_PUSH) {
+			$created = (new ImRstPrerequisites($db, $client))->createMissing($user, $langs);
+			if ($created === null) {
+				setEventMessages($client->errorMessage($langs), null, 'warnings');
+			} else {
+				if (!empty($created['created'])) {
+					setEventMessages($langs->trans('IM_RST_Created', implode(', ', $created['created'])), null, 'mesgs');
+				}
+				if (!empty($created['errors'])) {
+					setEventMessages($langs->trans('IM_RST_NotCreated', implode(', ', $created['errors'])), null, 'errors');
+				}
+			}
+		}
 	} else {
 		setEventMessages($client->errorMessage($langs), null, 'errors');
 	}

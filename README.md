@@ -27,16 +27,36 @@ shows what i-REST computes and creates what i-REST declares, in one of two modes
 - Mode push: module *API REST* of Dolibarr enabled, and the mode push chosen in i-REST on its Dolibarr
   connection.
 
+## Versions
+
+Releases: <https://github.com/i-faktur/Module-iREST/releases> (archive `module_irest-X.Y.Z.zip` and its SHA-256). The
+version follows SemVer, independently of the one of i-REST: i-REST tells which version it needs, on the screen
+*Companion application* of the connection and in its online help (minimum version by mode, recommended version and its
+download), and refuses an older one (calls answered `426` in mode read, nothing but its state written in mode push).
+
+| iRest for Dolibarr | i-REST | Modes |
+| --- | --- | --- |
+| 1.1.0 | 1.0.0 or later | read, push |
+| 1.2.0 (not released yet) | 1.0.0 or later | read, push, setup at the installation (manifest exported by i-REST) |
+
+Version 1.0.0 was never released. i-REST 1.0.0-rc.1 and 1.0.0-rc.2 have no API for the companion applications.
+
 ## Installation
 
-1. Copy the module into `htdocs/custom/irest` (the directory name must stay `irest`).
-2. *Home > Setup > Modules*: enable *iRest for Dolibarr*.
+1. Download `module_irest-X.Y.Z.zip` (link on the screen *Companion application* of i-REST, or the releases), then
+   *Home > Setup > Modules/Applications*, tab *Deploy/install external app/module*: send the archive. Or extract it
+   in `htdocs/custom`, which receives the directory `irest` (the name must stay `irest`). To update, disable the
+   module, deploy the new archive, then enable the module again.
+2. *Home > Setup > Modules*: enable *iRest for Dolibarr*. On a Dolibarr not yet configured for i-REST, this creates the
+   module API REST, the group *i-REST API* with its rights and the API user `irest`; tab *Installation*: check their
+   state and generate the API key, shown once, to copy into the i-REST connection. From the command line, as the user
+   of the site: `php htdocs/custom/irest/scripts/irest_install.php --generate-token --format=json`.
 3. Mode read: in i-REST, screen of the Dolibarr connection, *Companion application*: issue a key; then setup of the
    module: address of i-REST, key, then *Test the connection to i-REST*.
    Mode push: in i-REST, same screen, choose the mode push; give the API user of i-REST the right *Write the data
    sent by i-REST*; setup of the module: mode push, then *Check the data written by i-REST*.
-5. *Preparation* tab: create the missing elements.
-6. Users who may see the banks of hours: right *See the banks of hours computed by i-REST* (tabs) and *See the
+4. *Preparation* tab: create the missing elements.
+5. Users who may see the banks of hours: right *See the banks of hours computed by i-REST* (tabs) and *See the
    banks of hours of all the customers* (menu).
 
 The key is stored encrypted (`dolEncrypt()`, constant `IM_RST_API_KEY`); errors of the calls to i-REST go to the

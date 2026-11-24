@@ -40,6 +40,10 @@ function im_rst_admin_prepare_head()
 	$head[$h][1] = $langs->trans('IM_RST_Preparation');
 	$head[$h][2] = 'prerequisites';
 	$h++;
+	$head[$h][0] = dol_buildpath('/irest/admin/install.php', 1);
+	$head[$h][1] = $langs->trans('IM_RST_Installation');
+	$head[$h][2] = 'install';
+	$h++;
 	complete_head_from_modules($conf, $langs, null, $head, $h, 'irest@irest');
 	complete_head_from_modules($conf, $langs, null, $head, $h, 'irest@irest', 'remove');
 

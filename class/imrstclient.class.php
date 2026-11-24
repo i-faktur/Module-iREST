@@ -40,7 +40,7 @@ class ImRstClient
 	const API_VERSION = 1;
 
 	/** Version of the module, sent to i-REST. */
-	const MODULE_VERSION = '1.1.0';
+	const MODULE_VERSION = '1.2.0';
 
 	/** Mode "read": the module calls the API of i-REST. */
 	const MODE_READ = 'read';
