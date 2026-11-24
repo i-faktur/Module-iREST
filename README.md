@@ -37,7 +37,7 @@ download), and refuses an older one (calls answered `426` in mode read, nothing 
 | iRest for Dolibarr | i-REST | Modes |
 | --- | --- | --- |
 | 1.1.0 | 1.0.0 or later | read, push |
-| 1.2.0 (not released yet) | 1.0.0 or later | read, push, setup at the installation (manifest exported by i-REST) |
+| 1.2.0 | 1.0.0 or later | read, push, setup at the installation (manifest exported by i-REST) |
 
 Version 1.0.0 was never released. i-REST 1.0.0-rc.1 and 1.0.0-rc.2 have no API for the companion applications.
 

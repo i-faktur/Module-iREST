@@ -2,7 +2,7 @@
 
 All notable changes of iRest for Dolibarr. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.2.0] - Unreleased
+## [1.2.0] - 2026-11-24
 
 ### Added
 - Automatic setup, on a Dolibarr not yet configured for i-REST: module API REST, group "i-REST API" with its rights
